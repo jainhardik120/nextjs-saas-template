@@ -12,7 +12,7 @@ export const appRouter = createTRPCRouter({
   hello: publicProcedure.input(z.string()).query(async ({ input }) => {
     return `Hello ${input}`;
   }),
-  generateHelloMessage: publicProcedure.subscription(async function* () {
+  generateHelloMessage: publicProcedure.query(async function* () {
     const result = streamText({
       model: google("gemini-2.5-flash"),
       prompt: "Write a vegetarian lasagna recipe for 4 people.",
