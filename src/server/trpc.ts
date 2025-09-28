@@ -2,6 +2,10 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { treeifyError, ZodError } from "zod";
 import { getSession } from "./auth";
+import {
+  DefaultErrorData,
+  DefaultErrorShape,
+} from "@trpc/server/unstable-core-do-not-import";
 
 /**
  * The function createTRPCContext creates a context that does not depend on the r
@@ -13,13 +17,21 @@ export const createTRPCContext = (opts: { headers: Headers }) => {
   };
 };
 
+export type ErrorShape = DefaultErrorShape & {
+  data: {
+    zodError: {
+      errors: string[];
+    } | null;
+  } & DefaultErrorData;
+};
+
 /**
  * This code snippet is creating a TRPC instance using the `initTRPC` function
  * provided by the @trpc/server library.
  */
 const trpcInstance = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
-  errorFormatter: ({ shape, error }) => ({
+  errorFormatter: ({ shape, error }): ErrorShape => ({
     ...shape,
     data: {
       ...shape.data,
@@ -36,7 +48,7 @@ const trpcInstance = initTRPC.context<typeof createTRPCContext>().create({
 export const { createCallerFactory } = trpcInstance;
 
 /**
- * createTRPCRouter is for creating a router instance that consists of various 
+ * createTRPCRouter is for creating a router instance that consists of various
  * procedures, like queries and mutati
  */
 export const createTRPCRouter = trpcInstance.router;

@@ -1,24 +1,27 @@
 "use client";
 
+import { Response } from "@/components/ai-elements/response";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useStreamData } from "@/hooks/use-stream-data";
 import { client } from "@/server/client";
 import { useEffect, useState } from "react";
-import Markdown from "react-markdown";
+
 export default function Home() {
-  const [streamText, setStreamText] = useState("");
+  const [prompt, setPrompt] = useState("");
+  const { data, call, isBusy, state } = useStreamData(
+    client.generateHelloMessage
+  );
   useEffect(() => {
-    const generate = async () => {
-      const result = await client.generateHelloMessage.query();
-      for await (const textPart of result) {
-        setStreamText((prev) => {
-          return prev + textPart;
-        });
-      }
-    };
-    generate();
-  }, []);
+    console.log(data?.join(""));
+  }, [state]);
   return (
     <div>
-      <Markdown>{streamText}</Markdown>
+      <Input value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+      <Button disabled={isBusy} onClick={() => call(prompt)}>
+        {isBusy ? "Generating..." : "Generate"}
+      </Button>
+      {data !== null && <Response>{data.join("")}</Response>}
     </div>
   );
 }
